@@ -1058,10 +1058,16 @@ export default function Portfolio() {
         <div 
           className="project-modal-overlay"
           onClick={() => setActiveProjectModal(null)}
+          onAnimationEnd={(e) => {
+            e.currentTarget.style.animation = "none";
+          }}
         >
           <div 
             className="project-modal-card"
             onClick={(e) => e.stopPropagation()}
+            onAnimationEnd={(e) => {
+              e.currentTarget.style.animation = "none";
+            }}
           >
             <button 
               className="project-modal-close"
