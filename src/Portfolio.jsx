@@ -4,6 +4,131 @@ import emailjs from "@emailjs/browser";
 import "./Portfolio.css";
 import { SkillIcon } from "./SkillIcons";
 import { LinkedinIcon, GithubIcon, InstagramIcon } from "./assets/SocialIcons";
+function MiniParticleLoader() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId;
+    const size = 160;
+    canvas.width = size * window.devicePixelRatio;
+    canvas.height = size * window.devicePixelRatio;
+    canvas.style.width = size + "px";
+    canvas.style.height = size + "px";
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const particleCount = 20;
+    const particles = [];
+    const radius = 50;
+
+    for (let i = 0; i < particleCount; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      particles.push({ x, y, z });
+    }
+
+    let angleX = 0.015;
+    let angleY = 0.015;
+
+    const render = () => {
+      ctx.clearRect(0, 0, size, size);
+      
+      const cx = size / 2;
+      const cy = size / 2;
+      const fov = 120;
+
+      const projected = particles.map(p => {
+        const cosY = Math.cos(angleY);
+        const sinY = Math.sin(angleY);
+        let x1 = p.x * cosY - p.z * sinY;
+        let z1 = p.x * sinY + p.z * cosY;
+
+        const cosX = Math.cos(angleX);
+        const sinX = Math.sin(angleX);
+        let y1 = p.y * cosX - z1 * sinX;
+        let z2 = p.y * sinX + z1 * cosX;
+
+        p.x = x1;
+        p.y = y1;
+        p.z = z2;
+
+        const scale = fov / (fov + z2 + 80);
+        return {
+          x: cx + x1 * scale,
+          y: cy + y1 * scale,
+          z: z2
+        };
+      });
+
+      for (let i = 0; i < particleCount; i++) {
+        const p1 = projected[i];
+        for (let j = i + 1; j < particleCount; j++) {
+          const p2 = projected[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < 2025) { // 45 * 45
+            const dist = Math.sqrt(distSq);
+            const alpha = (1 - dist / 45) * 0.35;
+            ctx.strokeStyle = `rgba(0, 229, 255, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      projected.forEach(p => {
+        const nodeSize = Math.max(1, 3 * (fov / (fov + p.z + 80)));
+        ctx.fillStyle = "#00e5ff";
+        ctx.shadowColor = "#00e5ff";
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, nodeSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px var(--mono)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "#7b61ff";
+      ctx.shadowBlur = 10;
+      ctx.fillText("AJ", cx, cy);
+      ctx.shadowBlur = 0;
+
+      ctx.strokeStyle = "rgba(123, 97, 255, 0.15)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 72, 0, Math.PI * 2);
+      ctx.stroke();
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ display: "block", margin: "0 auto" }} />;
+}
+
 function Interactive3DBackground() {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
@@ -579,9 +704,31 @@ const education = [
 
 /* ── COMPONENTS ── */
 function ProjectCard({ project, index, onClick }) {
+  const [revealed, setRevealed] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setRevealed(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.05, rootMargin: "0px 0px -30px 0px" });
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   const style = index !== undefined ? { transitionDelay: `${index * 0.12}s` } : {};
   return (
-    <div className="project-card scroll-reveal" style={style} onClick={onClick}>
+    <div 
+      ref={ref}
+      className={`project-card scroll-reveal ${revealed ? "revealed" : ""}`} 
+      style={style} 
+      onClick={onClick}
+    >
       <div className="project-card-header">
         <div className="project-card-info">
           <div className="project-card-meta">
@@ -603,9 +750,30 @@ function ProjectCard({ project, index, onClick }) {
 }
 
 function TimelineItem({ item, index, isExpanded, onToggle }) {
+  const [revealed, setRevealed] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setRevealed(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.05, rootMargin: "0px 0px -30px 0px" });
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   const style = index !== undefined ? { transitionDelay: `${index * 0.12}s` } : {};
   return (
-    <div className={`timeline-item scroll-reveal ${isExpanded ? "active" : ""}`} style={style}>
+    <div 
+      ref={ref}
+      className={`timeline-item scroll-reveal ${revealed ? "revealed" : ""} ${isExpanded ? "active" : ""}`} 
+      style={style}
+    >
       <div 
         className={`timeline-card ${isExpanded ? "active" : ""}`}
         onClick={onToggle}
@@ -877,9 +1045,7 @@ export default function Portfolio() {
           <div className="loader-bg-glow" />
           <div className="loader-container">
             <div className="loader-ring-wrapper">
-              <div className="loader-ring-outer" />
-              <div className="loader-ring-inner" />
-              <div className="loader-logo-glow">AJ</div>
+              <MiniParticleLoader />
             </div>
             <div className="loader-progress-info">
               <span>Initializing Workspace</span>
