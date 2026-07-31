@@ -1,42 +1,46 @@
-# Walkthrough - Final Layout, Styling, Favicon & Git Push Update
+# Walkthrough - Final Layout, Styling, Favicon, Stacking Context Fix & Git Push Update
 
-We have completed the requested structural updates, cursor cleanups, scroll reveal animations, performance optimizations, button styling, document title customization, favicon updates, and GitHub push.
+We have completed the requested structural updates, cursor cleanups, scroll reveal animations, performance optimizations, button styling, document title customization, favicon updates, stacking context resolutions, and GitHub pushes.
 
 ---
 
-## 1. Custom Black Favicon
+## 1. Stacking Context / Vercel Blur Fix
+- **The Issue**: In production builds (deployed on environments like Vercel), browsers optimize animations by setting a persistent stacking context on any element using `animation-fill-mode: both` or active 3D transforms. Because `.hero-actions` has the `.fade-up` animation class, this parent container maintained a persistent transform stack that disabled child `backdrop-filter` rendering on WebKit and Chromium browsers.
+- **The Solution**: Added an `onAnimationEnd` handler to the `.hero-actions` container in [Portfolio.jsx](file:///c:/Users/ASUS/Desktop/portfolio/src/Portfolio.jsx) that strips the `.fade-up` classes once the animation completes. This clears the parent stacking context and restores the beautiful, premium frosted-glass blur over the background elements inside the buttons in production.
+
+## 2. Custom Black Favicon
 - Replaced the default Vite favicon with a custom-designed geometric **black neural network logo** ([public/favicon.svg](file:///c:/Users/ASUS/Desktop/portfolio/public/favicon.svg)).
 - The new logo features nested dashed orbits with connecting radial node networks, matching the tech-focused theme of the portfolio website.
 
-## 2. Button Backdrop Blur Styling
+## 3. Button Backdrop Blur Styling
 - Added `backdrop-filter: blur(8px)` and `-webkit-backdrop-filter: blur(8px)` to the `.btn-skew-bg` element (inside `.btn-primary`) and `.btn-secondary` in [Portfolio.css](file:///c:/Users/ASUS/Desktop/portfolio/src/Portfolio.css).
 - This creates a beautiful, premium frosted-glass blur over the animated particle background elements inside the button.
 
-## 3. Git Initialization & GitHub Push
+## 4. Git Initialization & GitHub Push
 - Initialized the Git repository.
 - Added `.env` to `.gitignore` to prevent committing sensitive keys.
 - Created a `.env.example` file as a setup guide.
 - Created a customized [README.md](file:///c:/Users/ASUS/Desktop/portfolio/README.md) describing the structure, tech stack, and setup instructions.
 - Staged all files, committed, and pushed successfully to the GitHub repository: `https://github.com/albwn4743/MyPortfolio.git` under branch `main`.
 
-## 4. Custom Title
+## 5. Custom Title
 - Updated the HTML document title in [index.html](file:///c:/Users/ASUS/Desktop/portfolio/index.html) to display `Albin-Joy`.
 
-## 5. Custom Cursor Removal
+## 6. Custom Cursor Removal
 - Removed the custom cursor refs (`cursorRef`, `ringRef`), `useEffect` event listener hook, and cursor element markups from [Portfolio.jsx](file:///c:/Users/ASUS/Desktop/portfolio/src/Portfolio.jsx).
 - Cleaned up custom cursor definitions in [Portfolio.css](file:///c:/Users/ASUS/Desktop/portfolio/src/Portfolio.css) and restored the standard system cursor pointer to all hoverable elements (`html`, `body`, `.nav-cta`, `.btn-primary`, and `.form-submit`).
 
-## 6. About Section Layout & Content
+## 7. About Section Layout & Content
 - Updated the paragraphs in the About card to reflect the new AI Engineer focus details.
 - Completely removed the right-side profile image column from the About grid as requested.
 - Adjusted the layout: the `// About me` tag and `Turning data into decisions` title align to the left side of the page (matching other section headers), while the `about-card` paragraph box is centered with a comfortable readable width limit (`max-width: 900px`).
 
-## 7. Scroll Reveal Animations
+## 8. Scroll Reveal Animations
 - Created an `IntersectionObserver` scroll listener in [Portfolio.jsx](file:///c:/Users/ASUS/Desktop/portfolio/src/Portfolio.jsx) that monitors `.scroll-reveal` elements as they scroll into view.
 - Added transition delay rules (`.delay-1`, `.delay-2`, `.delay-3`) in [Portfolio.css](file:///c:/Users/ASUS/Desktop/portfolio/src/Portfolio.css) to support staggering transitions.
 - Tagged sections, cards, categories, and timeline items with the scroll-reveal classes to float them in smoothly.
 
-## 8. Performance Optimizations
+## 9. Performance Optimizations
 - **Trigonometric/Distance Optimizations**: Optimized calculations in `Interactive3DBackground` by comparing squared distances ($dx^2 + dy^2$) first instead of executing expensive `Math.sqrt` calculations on every frame. This eliminates roughly 3,000+ square root calculations per frame, dramatically reducing CPU/GPU overhead.
 - **Scroll Spy Optimization**: Replaced the previous layout-thrashing scroll listener (which checked `offsetTop` and `offsetHeight` for sections during scroll events) with a high-performance `IntersectionObserver` scroll spy hook to highlight the navbar items without triggering forced reflows.
 
