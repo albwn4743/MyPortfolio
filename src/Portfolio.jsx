@@ -982,7 +982,12 @@ export default function Portfolio() {
             <p className="hero-desc fade-up fade-up-4">
               I build intelligent systems at the intersection of <strong style={{ color: "var(--accent2)" }}>deep learning</strong>, scalable infrastructure, and real-world product impact.
             </p>
-            <div className="hero-actions fade-up fade-up-5">
+            <div 
+              className="hero-actions fade-up fade-up-5"
+              onAnimationEnd={(e) => {
+                e.currentTarget.classList.remove("fade-up", "fade-up-5");
+              }}
+            >
               <a href="#projects" className="btn-primary">
                 <span className="btn-skew-bg"></span>
                 <span>View my work</span>
